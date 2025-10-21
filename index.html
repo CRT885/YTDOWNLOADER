@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube Downloader</title>
+  <!--STYLE-->
+  <script>
+  async function getFormats() {
+    document.getElementById('formats').innerHTML = "<p>Fetching formats...</p>";
+    const url = document.getElementById('url').value;
+    const res = await fetch('/get_formats', { method: 'POST', body: new URLSearchParams({url}) });
+    const data = await res.json();
+    if (data.error) {
+      document.getElementById('formats').innerHTML = `<p class="error">Error: ${data.error}</p>`;
+      return;
+    }
+    let html = `<h3>${data.title}</h3><form method='post' action='/download'>
+                <input type='hidden' name='url' value='${url}'>
+                <label>Choose Format:</label><br>`;
+    html += "<select name='format_id' required>";
+    data.video_formats.forEach(f => {
+      html += `<option value='${f.id}'>Video ${f.resolution} (${f.ext})</option>`;
+    });
+    data.audio_formats.forEach(f => {
+      html += `<option value='${f.id}'>Audio ${f.bitrate}kbps (${f.ext})</option>`;
+    });
+    html += "</select><br><label>Type:</label><select name='type'><option value='video'>Video</option><option value='audio'>Audio</option></select><br><br>";
+    html += "<button type='submit'>Download</button></form>";
+    document.getElementById('formats').innerHTML = html;
+  }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>YouTube Downloader</h1>
+    <form onsubmit="event.preventDefault(); getFormats();">
+      <input type="text" id="url" name="url" placeholder="Enter YouTube URL" required>
+      <button type="submit">Fetch Formats</button>
+    </form>
+    <div id="formats"></div>
+  </div>
+</body>
+</html>
